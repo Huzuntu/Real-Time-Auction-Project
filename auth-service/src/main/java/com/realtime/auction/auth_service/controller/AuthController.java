@@ -1,8 +1,6 @@
 package com.realtime.auction.auth_service.controller;
 
-import com.realtime.auction.auth_service.dto.AuthResponse;
-import com.realtime.auction.auth_service.dto.LoginRequest;
-import com.realtime.auction.auth_service.dto.RegisterRequest;
+import com.realtime.auction.auth_service.dto.*;
 import com.realtime.auction.auth_service.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,5 +46,10 @@ public class AuthController {
 
         authService.logout(token);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/validate")
+    public ResponseEntity<TokenValidationResponse> validateToken(@RequestBody TokenValidationRequest request) {
+        return ResponseEntity.ok(authService.validateToken(request.getToken()));
     }
 }

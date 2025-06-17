@@ -56,7 +56,7 @@ public class AuthService {
                 .createdAt(Instant.now())
                 .build());
 
-        String accessToken = jwtService.generateAccessToken(savedUserAuth, Set.of(UserRole.ROLE_USER));
+        String accessToken = jwtService.generateAccessToken(savedUserAuth);
 
         userCreateEventPublisher.publish(
                 UserCreatedEvent.builder()
@@ -96,7 +96,7 @@ public class AuthService {
         user.setLastLoginAt(now);
         UserAuth savedUser = authRepository.save(user);
 
-        String accessToken = jwtService.generateAccessToken(savedUser, savedUser.getRoles());
+        String accessToken = jwtService.generateAccessToken(savedUser);
 
         loginEventPublisher.publish(LoginEvent.builder()
                 .userId(savedUser.getId())
@@ -131,36 +131,36 @@ public class AuthService {
         }
     }
 
-//    @Transactional
-//    public TokenValidationResponse validateToken(String token) {
-//        boolean isBlacklisted = tokenBlacklistRepository.existsByToken(token);
-//        if (isBlacklisted) {
-//            return TokenValidationResponse.builder()
-//                    .valid(false)
-//                    .build();
-//        }
-//
-//        boolean valid = jwtService.validateToken(token);
-//        if (!valid) {
-//            return TokenValidationResponse.builder()
-//                    .valid(false)
-//                    .build();
-//        }
-//
-//        UUID userId = jwtService.getUserIdFromToken(token);
-//        UserAuth user = authRepository.findById(userId).orElse(null);
-//        if (user == null) {
-//            return TokenValidationResponse.builder()
-//                    .valid(false)
-//                    .build();
-//        }
-//        return TokenValidationResponse.builder()
-//                .valid(true)
-//                .userId(user.getId())
-//                .email(user.getEmail())
-//                .role(user.getRole())
-//                .expiresAt(jwtService.getTokenExpiration(token))
-//                .build();
-//    }
+    @Transactional
+    public TokenValidationResponse validateToken(String token) {
+        boolean isBlacklisted = tokenBlacklistRepository.existsByToken(token);
+        if (isBlacklisted) {
+            return TokenValidationResponse.builder()
+                    .valid(false)
+                    .build();
+        }
+
+        boolean valid = jwtService.validateToken(token);
+        if (!valid) {
+            return TokenValidationResponse.builder()
+                    .valid(false)
+                    .build();
+        }
+
+        UUID userId = jwtService.getUserIdFromToken(token);
+        UserAuth user = authRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return TokenValidationResponse.builder()
+                    .valid(false)
+                    .build();
+        }
+        return TokenValidationResponse.builder()
+                .valid(true)
+                .userId(user.getId())
+                .email(user.getEmail())
+                .roles(user.getRoles())
+                .expiresAt(jwtService.getTokenExpiration(token))
+                .build();
+    }
 
 }

@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "auth_users", uniqueConstraints = {
@@ -41,7 +42,7 @@ public class UserAuth {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     @Builder.Default
-    private Set<UserRole> roles = new HashSet<>();
+    private Set<UserRole> roles = new HashSet<>(Set.of(UserRole.ROLE_USER));
 
     @Builder.Default
     @Column(name = "is_enabled", nullable = false)
@@ -56,4 +57,12 @@ public class UserAuth {
     private Instant updatedAt;
 
     private Instant lastLoginAt;
+
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return this.roles.stream()
+                .map(UserRole::toAuthority)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+    }
 }

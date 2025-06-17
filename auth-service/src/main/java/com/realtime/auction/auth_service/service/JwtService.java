@@ -25,18 +25,29 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private Long accessTokenExpiration;
 
-    public String generateAccessToken(UserAuth user, Set<UserRole> roles) {
+    public String generateAccessToken(UserAuth user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("roles", roles.stream().map(Enum::name).toList());
+        claims.put("roles", user.getRoles().stream()
+                .map(UserRole::name)
+                .collect(Collectors.toList()));
+        // claims.put("roles", roles.stream().map(Enum::name).toList());
         claims.put("userId", user.getId().toString());
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(user.getId().toString())
+                .setSubject(user.getEmail())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
+//        return Jwts.builder()
+//                .setClaims(claims)
+//                .setSubject(user.getId().toString())
+//                .setIssuedAt(new Date(System.currentTimeMillis()))
+//                .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+//                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+//                .compact();
+
     }
 
     public Claims parseToken(String token) {
@@ -83,6 +94,7 @@ public class JwtService {
         }
         return Collections.emptySet();
     }
+
 
     public Instant getTokenExpiration(String token) {
         return extractExpiration(token).toInstant();
